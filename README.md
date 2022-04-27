@@ -21,6 +21,10 @@ Connect mining units to the board
 
 You don't have to touch slots name or anything, the script will detect all elements automatically.
 
+### installing the script
+
+Copy the content of the file config.json then right clik on the board, chose advanced and click on "Paste Lua configuraton from clipboard"
+
 ### informations
 
 Mining units will be displayed in the order they are linked to the board

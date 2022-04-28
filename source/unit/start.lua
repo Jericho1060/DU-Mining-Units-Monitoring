@@ -3,6 +3,8 @@ system.print("DU-Mining-Units-Monitoring version 1.0.0")
 system.print("-----------------------------------")
 
 font_size = 25 --export: font size for each line on the screen
+calibration_red_level = 50 --export: The percent calibration below gauge will be red
+calibration_yellow_level = 90 --export: The percent calibration below gauge will be yellow
 
 local renderScript = [[
 local json = require('dkjson')
@@ -20,7 +22,9 @@ local rx,ry = getResolution()
 local back=createLayer()
 local front=createLayer()
 
-font_size = options.font_size
+font_size = options[1]
+calibration_red_level = options[2]
+calibration_yellow_level = options[3]
 
 local mini=loadFont('Play',12)
 local small=loadFont('Play',14)
@@ -118,6 +122,10 @@ function renderResistanceBar(title, index, status, time, prod_rate, calibration,
     if status == "STALLED" then colorLayer = storageYellow end
     if status == "STOPPED" then colorLayer = storageRed end
 
+    local gaugeColorLayer = storageGreen
+    if calibration < calibration_yellow_level then gaugeColorLayer = storageYellow end
+    if calibration < calibration_red_level then gaugeColorLayer = storageRed end
+
     addBox(storageBar,x,y,w,h)
 
 
@@ -135,7 +143,7 @@ function renderResistanceBar(title, index, status, time, prod_rate, calibration,
     end
 
     addText(storageBar, itemName, title, x+15+font_size, y+h-font_size/2)
-    addBox(colorLayer,x,y+h-3,w,3)
+    addBox(gaugeColorLayer,x,y+h-3,w*calibration/100,3)
 
     if isImageLoaded(images[index]) then
         addImage(imagesLayer, images[index], x+10, y+5, font_size, font_size)
@@ -234,9 +242,7 @@ MyCoroutines = {
             coroutine.yield(coroutinesTable[1])
         end
         for index, screen in pairs(screens) do
-            local options = {
-                font_size = font_size
-            }
+            local options = {font_size, calibration_red_level, calibration_yellow_level}
             local data_to_send = {options, screen_data}
             screen.setScriptInput(json.encode(data_to_send))
         end

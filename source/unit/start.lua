@@ -2,10 +2,14 @@ system.print("-----------------------------------")
 system.print("DU-Mining-Units-Monitoring version 1.0.0")
 system.print("-----------------------------------")
 
+font_size = 25 --export: font size for each line on the screen
+
 local renderScript = [[
 local json = require('dkjson')
 logMessage(getInput())
-local data = json.decode(getInput()) or {}
+local screen_data = json.decode(getInput()) or {}
+local options = screen_data[1]
+local data = screen_data[2]
 images = {}
 for index,mu in ipairs(data) do
     images[index] = loadImage(mu[3][2])
@@ -16,7 +20,7 @@ local rx,ry = getResolution()
 local back=createLayer()
 local front=createLayer()
 
-font_size = 25
+font_size = options.font_size
 
 local mini=loadFont('Play',12)
 local small=loadFont('Play',14)
@@ -230,7 +234,11 @@ MyCoroutines = {
             coroutine.yield(coroutinesTable[1])
         end
         for index, screen in pairs(screens) do
-            screen.setScriptInput(json.encode(screen_data))
+            local options = {
+                font_size = font_size
+            }
+            local data_to_send = {options, screen_data}
+            screen.setScriptInput(json.encode(data_to_send))
         end
     end
 }

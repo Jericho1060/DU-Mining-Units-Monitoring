@@ -234,7 +234,7 @@ MyCoroutines = {
                 mu.getStatus(),
                 round(mu.getRemainingTime()),
                 ores[ore_id],
-                mu.getProductionRate(),
+                round(mu.getProductionRate()*100)/100,
                 round(mu.getCalibrationRate()*100),
                 round(mu.getEfficiency()*100),
             }

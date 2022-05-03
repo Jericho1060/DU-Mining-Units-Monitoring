@@ -1,20 +1,19 @@
-system.print("-----------------------------------")
-system.print("DU-Mining-Units-Monitoring version 1.0.0")
-system.print("-----------------------------------")
+system.print("----------------------------------------")
+system.print("DU-Mining-Units-Monitoring version 1.2.0")
+system.print("----------------------------------------")
 
-font_size = 25 --export: font size for each line on the screen
-calibration_red_level = 50 --export: The percent calibration below gauge will be red
-calibration_yellow_level = 90 --export: The percent calibration below gauge will be yellow
+fontSize = 25 --export: font size for each line on the screen
+calibrationRedLevel = 50 --export: The percent calibration below gauge will be red
+calibrationYellowLevel = 90 --export: The percent calibration below gauge will be yellow
+calibrationSecondsRedLevel = 259200 --export: The time in seconds from last calibration above the time will be displayed in red. Default to 259200 (3 days / 72h)
+calibrationSecondsYellowLevel = 86400 --export: The time in seconds from last calibration above the time will be displayed in yellow. Default to 86400 (1 day / 24h)
 
 local renderScript = [[
 local json = require('dkjson')
-logMessage(getInput())
-local screen_data = json.decode(getInput()) or {}
-local options = screen_data[1]
-local data = screen_data[2]
+local data = json.decode(getInput()) or {}
 images = {}
 for index,mu in ipairs(data) do
-    images[index] = loadImage(mu[3][2])
+    images[index] = loadImage("resources_generated/env/" .. mu[3][2])
 end
 
 local rx,ry = getResolution()
@@ -22,18 +21,15 @@ local rx,ry = getResolution()
 local back=createLayer()
 local front=createLayer()
 
-font_size = options[1]
-calibration_red_level = options[2]
-calibration_yellow_level = options[3]
+font_size = ]] .. fontSize .. [[
+
 
 local mini=loadFont('Play',12)
 local small=loadFont('Play',14)
 local smallBold=loadFont('Play-Bold',18)
 local itemName=loadFont('Play-Bold',font_size)
 local itemNameSmall=loadFont('Play-Bold',font_size*0.75)
-local medV=loadFont('Play-Bold', 25)
-local bigV=loadFont('Play-Bold', 30)
-local big=loadFont('Play',38)
+local itemNameXs=loadFont('Play-Bold',font_size*0.65)
 
 setBackgroundColor( 15/255,24/255,29/255)
 
@@ -56,36 +52,13 @@ function format_number(value)
     return formatted
 end
 
-function SecondsToClockString(seconds)
-    local seconds = tonumber(seconds)
+function SecondsToClockString(a)local a=tonumber(a)if a==nil or a<=0 then return"-"else days=string.format("%2.f",math.floor(a/(3600*24)))hours=string.format("%2.f",math.floor(a/3600-days*24))mins=string.format("%2.f",math.floor(a/60-hours*60-days*24*60))secs=string.format("%2.f",math.floor(a-hours*3600-days*24*60*60-mins*60))str=""if tonumber(days)>0 then str=str..days.."d "end;if tonumber(hours)>0 then str=str..hours.."h "end;if tonumber(mins)>0 then str=str..mins.."m "end;if tonumber(secs)>0 then str=str..secs.."s"end;return str end end
 
-    if seconds == nil or seconds <= 0 then
-        return "-";
-    else
-        days = string.format("%2.f", math.floor(seconds/(3600*24)));
-        hours = string.format("%2.f", math.floor(seconds/3600 - (days*24)));
-        mins = string.format("%2.f", math.floor(seconds/60 - (hours*60) - (days*24*60)));
-        secs = string.format("%2.f", math.floor(seconds - hours*3600  - (days*24*60*60) - mins *60));
-        str = ""
-        if tonumber(days) > 0 then str = str .. days.."d " end
-        if tonumber(hours) > 0 then str = str .. hours.."h " end
-        if tonumber(mins) > 0 then str = str .. mins.."m " end
-        if tonumber(secs) > 0 then str = str .. secs .."s" end
-        return str
-    end
-end
-
-function round(value, precision)
-    if precision then return utils.round(value / precision) * precision end
-    return value >= 0 and math.floor(value+0.5) or math.ceil(value-0.5)
-end
+function round(a,b)if b then return utils.round(a/b)*b end;return a>=0 and math.floor(a+0.5)or math.ceil(a-0.5)end
 
 function renderHeader(title)
     local h_factor = 12
     local h = 35
-    if subtitle ~= nil and subtitle ~= "" then
-        h = 50
-    end
     addLine( back,0,h+12,rx,h+12)
     addBox(front,0,12,rx,h)
     addText(front,smallBold,title,44,35)
@@ -114,7 +87,7 @@ setDefaultFillColor(storageGreen,Shape_Box,34/255,177/255,76/255,1)
 
 local imagesLayer = createLayer()
 
-function renderResistanceBar(title, index, status, time, prod_rate, calibration, efficiency, x, y, w, h, withTitle)
+function renderResistanceBar(title, index, status, time, prod_rate, calibration, efficiency, cal_time, x, y, w, h, withTitle)
     local quantity_x_pos = font_size * 6.7
     local percent_x_pos = font_size * 2
 
@@ -123,8 +96,12 @@ function renderResistanceBar(title, index, status, time, prod_rate, calibration,
     if status == "STOPPED" then colorLayer = storageRed end
 
     local gaugeColorLayer = storageGreen
-    if calibration < calibration_yellow_level then gaugeColorLayer = storageYellow end
-    if calibration < calibration_red_level then gaugeColorLayer = storageRed end
+    if calibration < ]] .. calibrationRedLevel .. [[ then gaugeColorLayer = storageYellow end
+    if calibration < ]] .. calibrationYellowLevel .. [[ then gaugeColorLayer = storageRed end
+
+    local CalibrationTimeColorLayer = storageGreen
+    if cal_time > ]] .. calibrationSecondsYellowLevel .. [[ then CalibrationTimeColorLayer = storageYellow end
+    if cal_time > ]] .. calibrationSecondsRedLevel .. [[ then CalibrationTimeColorLayer = storageRed end
 
     addBox(storageBar,x,y,w,h)
 
@@ -137,7 +114,7 @@ function renderResistanceBar(title, index, status, time, prod_rate, calibration,
         setNextTextAlign(storageBar, AlignH_Center, AlignV_Bottom)
         addText(storageBar, small, "RATE", x+(w*0.45), y-3)
         setNextTextAlign(storageBar, AlignH_Center, AlignV_Bottom)
-        addText(storageBar, small, "CALIBRATION", x+(w*0.6), y-3)
+        addText(storageBar, small, "LAST CALIBRATION", x+(w*0.6), y-3)
         setNextTextAlign(storageBar, AlignH_Center, AlignV_Bottom)
         addText(storageBar, small, "EFFICIENCY", x+(w*0.75), y-3)
     end
@@ -152,8 +129,10 @@ function renderResistanceBar(title, index, status, time, prod_rate, calibration,
     addText(storageBar, itemNameSmall, SecondsToClockString(time), x+(w*0.3), y+(h/2)-3)
     setNextTextAlign(storageBar, AlignH_Center, AlignV_Middle)
     addText(storageBar, itemNameSmall, format_number(prod_rate) .. 'L', x+(w*0.45), y+(h/2)-3)
-    setNextTextAlign(storageBar, AlignH_Center, AlignV_Middle)
-    addText(storageBar, itemNameSmall, format_number(calibration) .. '%', x+(w*0.6), y+(h/2)-3)
+    setNextTextAlign(CalibrationTimeColorLayer, AlignH_Center, AlignV_Middle)
+    addText(CalibrationTimeColorLayer, itemNameXs, SecondsToClockString(cal_time), x+(w*0.6), y+(h/4)-3)
+    setNextTextAlign(gaugeColorLayer, AlignH_Center, AlignV_Middle)
+    addText(gaugeColorLayer, itemNameXs, format_number(calibration) .. '%', x+(w*0.6), y+(h/4)+(h/4)+(h/4)-3)
     setNextTextAlign(storageBar, AlignH_Center, AlignV_Middle)
     addText(storageBar, itemNameSmall, format_number(efficiency) .. '%', x+(w*0.75), y+(h/2)-3)
 
@@ -169,8 +148,8 @@ start_h = 75
 
 local h = font_size + font_size / 2
 for i,mu in ipairs(data) do
-    renderResistanceBar(mu[3][1], i, mu[1], mu[2], mu[4], mu[5], mu[6], 44, start_h, rx-88, h, i==1)
-    start_h = start_h+h+10
+    renderResistanceBar(mu[3][1], i, mu[1], mu[2], mu[4], mu[5], mu[6], mu[7], 44, start_h, rx-88, h, i==1)
+    start_h = start_h+h+15
 end
 requestAnimationFrame(10)
 ]]
@@ -208,10 +187,7 @@ else
     system.print(#mining_units .. " mining unit" .. plural .. " connected")
 end
 
-function round(value, precision)
-    if precision then return utils.round(value / precision) * precision end
-    return value >= 0 and math.floor(value+0.5) or math.ceil(value-0.5)
-end
+function round(a,b)if b then return utils.round(a/b)*b end;return a>=0 and math.floor(a+0.5)or math.ceil(a-0.5)end
 
 ores = {}
 
@@ -227,7 +203,7 @@ MyCoroutines = {
                 local item_data = system.getItem(ore_id)
                 ores[ore_id] = {
                     item_data.displayName,
-                    item_data.iconPath
+                    item_data.iconPath:gsub("resources_generated/env/","")
                 }
             end
             local mu_data = {
@@ -237,14 +213,13 @@ MyCoroutines = {
                 round(mu.getProductionRate()*100)/100,
                 round(mu.getCalibrationRate()*100),
                 round(mu.getEfficiency()*100),
+                round(mu.getLastExtractionTime()),
             }
             table.insert(screen_data, mu_data)
             coroutine.yield(coroutinesTable[1])
         end
         for index, screen in pairs(screens) do
-            local options = {font_size, calibration_red_level, calibration_yellow_level}
-            local data_to_send = {options, screen_data}
-            screen.setScriptInput(json.encode(data_to_send))
+            screen.setScriptInput(json.encode(screen_data))
         end
     end
 }

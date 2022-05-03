@@ -34,5 +34,7 @@ Mining units will be displayed in the order they are linked to the board
 By rightclicking on the board, advanced, edit lua parameters, you can customize these options:
 
 - `fontSize`: the size of the text for each line on the screen
-- `calibration_red_level`: The percent calibration below gauge will be red
-- `calibration_yellow_level`: The percent calibration below gauge will be red
+- `calibrationRedLevel`: The percent calibration below gauge will be red
+- `calibrationYellowLevel`: The percent calibration below gauge will be red
+- `calibrationSecondsRedLevel`: The time in seconds from last calibration above the time will be displayed in red. Default to 259200 (3 days / 72h)
+- `calibrationSecondsYellowLevel`: The time in seconds from last calibration above the time will be displayed in yellow. Default to 86400 (1 day / 24h)

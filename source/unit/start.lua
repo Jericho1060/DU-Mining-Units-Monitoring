@@ -1,5 +1,5 @@
 system.print("----------------------------------------")
-system.print("DU-Mining-Units-Monitoring version 1.3.1")
+system.print("DU-Mining-Units-Monitoring version 1.3.2")
 system.print("----------------------------------------")
 
 fontSize = 25 --export: font size for each line on the screen
@@ -214,7 +214,7 @@ MyCoroutines = {
             if ores[ore_id] == nil then
                 local item_data = system.getItem(ore_id)
                 ores[ore_id] = {
-                    item_data.displayName,
+                    item_data.locDisplayName,
                     item_data.iconPath:gsub("resources_generated/env/","")
                 }
             end

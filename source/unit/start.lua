@@ -1,5 +1,5 @@
 system.print("----------------------------------------")
-system.print("DU-Mining-Units-Monitoring version 1.3.0")
+system.print("DU-Mining-Units-Monitoring version 1.3.1")
 system.print("----------------------------------------")
 
 fontSize = 25 --export: font size for each line on the screen
@@ -54,6 +54,8 @@ function SecondsToClockString(a)local a=tonumber(a)if a==nil or a<=0 then return
 
 function round(a,b)if b then return utils.round(a/b)*b end;return a>=0 and math.floor(a+0.5)or math.ceil(a-0.5)end
 
+function getRGBGradient(a,b,c,d,e,f,g)a=-1*math.cos(a*math.pi)/2+0.5;local h=b-a*(b-e)local i=c-a*(c-f)local j=d-a*(d-g)return h,i,j end
+
 function renderHeader(title)
     local h_factor = 12
     local h = 35
@@ -85,6 +87,8 @@ setDefaultFillColor(storageGreen,Shape_Box,34/255,177/255,76/255,1)
 
 local imagesLayer = createLayer()
 
+local gaugeColorLayer = createLayer()
+
 function renderResistanceBar(title, index, status, time, prod_rate, calibration, optimal, efficiency, cal_time, x, y, w, h, withTitle)
     local quantity_x_pos = font_size * 6.7
     local percent_x_pos = font_size * 2
@@ -93,9 +97,19 @@ function renderResistanceBar(title, index, status, time, prod_rate, calibration,
     if status == "STALLED" then colorLayer = storageYellow end
     if status == "STOPPED" then colorLayer = storageRed end
 
-    local gaugeColorLayer = storageGreen
-    if calibration < optimal then gaugeColorLayer = storageYellow end
-    if calibration < (optimal/2) then gaugeColorLayer = storageRed end
+    pcal = calibration
+    if pcal > optimal then pcal = optimal end
+    if optimal > 0 then
+        pcal = pcal / optimal
+    else
+        pcal = 1
+    end
+    local r = 34/255
+    local g = 177/255
+    local b = 76/255
+    if pcal < 1 then
+        r,g,b = getRGBGradient(pcal,177/255,42/255,42/255,249/255,212/255,123/255)
+    end
 
     local CalibrationTimeColorLayer = storageGreen
     if cal_time > ]] .. calibrationSecondsYellowLevel .. [[ then CalibrationTimeColorLayer = storageYellow end
@@ -118,6 +132,7 @@ function renderResistanceBar(title, index, status, time, prod_rate, calibration,
     end
 
     addText(storageBar, itemName, title, x+15+font_size, y+h-font_size/2)
+    setNextFillColor(gaugeColorLayer, r, g, b, 1)
     addBox(gaugeColorLayer,x,y+h-3,w*calibration/100,3)
 
     if isImageLoaded(images[index]) then
@@ -129,6 +144,7 @@ function renderResistanceBar(title, index, status, time, prod_rate, calibration,
     addText(storageBar, itemNameSmall, format_number(prod_rate) .. 'L', x+(w*0.45), y+(h/2)-3)
     setNextTextAlign(CalibrationTimeColorLayer, AlignH_Center, AlignV_Middle)
     addText(CalibrationTimeColorLayer, itemNameXs, SecondsToClockString(cal_time), x+(w*0.6), y+(h/4)-3)
+    setNextFillColor(gaugeColorLayer, r, g, b, 1)
     setNextTextAlign(gaugeColorLayer, AlignH_Center, AlignV_Middle)
     addText(gaugeColorLayer, itemNameXs, format_number(calibration) .. '% / ' ..format_number(optimal) .. '%', x+(w*0.6), y+(h/4)+(h/4)+(h/4)-3)
     setNextTextAlign(storageBar, AlignH_Center, AlignV_Middle)
@@ -136,8 +152,6 @@ function renderResistanceBar(title, index, status, time, prod_rate, calibration,
 
     setNextTextAlign(colorLayer, AlignH_Right, AlignV_Middle)
     addText(colorLayer, itemName, status, x+w-10, y+(h/2)-3)
-
-    --addBox(storageDark,x+w-400,y+5,390,20)
 end
 
 renderHeader('MINING UNITS MONITORING')

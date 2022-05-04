@@ -1,10 +1,8 @@
 system.print("----------------------------------------")
-system.print("DU-Mining-Units-Monitoring version 1.2.0")
+system.print("DU-Mining-Units-Monitoring version 1.3.0")
 system.print("----------------------------------------")
 
 fontSize = 25 --export: font size for each line on the screen
-calibrationRedLevel = 50 --export: The percent calibration below gauge will be red
-calibrationYellowLevel = 90 --export: The percent calibration below gauge will be yellow
 calibrationSecondsRedLevel = 259200 --export: The time in seconds from last calibration above the time will be displayed in red. Default to 259200 (3 days / 72h)
 calibrationSecondsYellowLevel = 86400 --export: The time in seconds from last calibration above the time will be displayed in yellow. Default to 86400 (1 day / 24h)
 
@@ -87,7 +85,7 @@ setDefaultFillColor(storageGreen,Shape_Box,34/255,177/255,76/255,1)
 
 local imagesLayer = createLayer()
 
-function renderResistanceBar(title, index, status, time, prod_rate, calibration, efficiency, cal_time, x, y, w, h, withTitle)
+function renderResistanceBar(title, index, status, time, prod_rate, calibration, optimal, efficiency, cal_time, x, y, w, h, withTitle)
     local quantity_x_pos = font_size * 6.7
     local percent_x_pos = font_size * 2
 
@@ -96,8 +94,8 @@ function renderResistanceBar(title, index, status, time, prod_rate, calibration,
     if status == "STOPPED" then colorLayer = storageRed end
 
     local gaugeColorLayer = storageGreen
-    if calibration < ]] .. calibrationRedLevel .. [[ then gaugeColorLayer = storageYellow end
-    if calibration < ]] .. calibrationYellowLevel .. [[ then gaugeColorLayer = storageRed end
+    if calibration < optimal then gaugeColorLayer = storageYellow end
+    if calibration < (optimal/2) then gaugeColorLayer = storageRed end
 
     local CalibrationTimeColorLayer = storageGreen
     if cal_time > ]] .. calibrationSecondsYellowLevel .. [[ then CalibrationTimeColorLayer = storageYellow end
@@ -114,7 +112,7 @@ function renderResistanceBar(title, index, status, time, prod_rate, calibration,
         setNextTextAlign(storageBar, AlignH_Center, AlignV_Bottom)
         addText(storageBar, small, "RATE", x+(w*0.45), y-3)
         setNextTextAlign(storageBar, AlignH_Center, AlignV_Bottom)
-        addText(storageBar, small, "LAST CALIBRATION", x+(w*0.6), y-3)
+        addText(storageBar, small, "CALIBRATION", x+(w*0.6), y-3)
         setNextTextAlign(storageBar, AlignH_Center, AlignV_Bottom)
         addText(storageBar, small, "EFFICIENCY", x+(w*0.75), y-3)
     end
@@ -132,7 +130,7 @@ function renderResistanceBar(title, index, status, time, prod_rate, calibration,
     setNextTextAlign(CalibrationTimeColorLayer, AlignH_Center, AlignV_Middle)
     addText(CalibrationTimeColorLayer, itemNameXs, SecondsToClockString(cal_time), x+(w*0.6), y+(h/4)-3)
     setNextTextAlign(gaugeColorLayer, AlignH_Center, AlignV_Middle)
-    addText(gaugeColorLayer, itemNameXs, format_number(calibration) .. '%', x+(w*0.6), y+(h/4)+(h/4)+(h/4)-3)
+    addText(gaugeColorLayer, itemNameXs, format_number(calibration) .. '% / ' ..format_number(optimal) .. '%', x+(w*0.6), y+(h/4)+(h/4)+(h/4)-3)
     setNextTextAlign(storageBar, AlignH_Center, AlignV_Middle)
     addText(storageBar, itemNameSmall, format_number(efficiency) .. '%', x+(w*0.75), y+(h/2)-3)
 
@@ -148,7 +146,7 @@ start_h = 75
 
 local h = font_size + font_size / 2
 for i,mu in ipairs(data) do
-    renderResistanceBar(mu[3][1], i, mu[1], mu[2], mu[4], mu[5], mu[6], mu[7], 44, start_h, rx-88, h, i==1)
+    renderResistanceBar(mu[3][1], i, mu[1], mu[2], mu[4], mu[5], mu[6], mu[7], mu[8], 44, start_h, rx-88, h, i==1)
     start_h = start_h+h+15
 end
 requestAnimationFrame(10)
@@ -212,6 +210,7 @@ MyCoroutines = {
                 ores[ore_id],
                 round(mu.getProductionRate()*100)/100,
                 round(mu.getCalibrationRate()*100),
+                round(mu.getOptimalRate()*100),
                 round(mu.getEfficiency()*100),
                 round(mu.getLastExtractionTime()),
             }

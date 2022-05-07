@@ -1,5 +1,5 @@
 system.print("----------------------------------------")
-system.print("DU-Mining-Units-Monitoring version 1.3.2")
+system.print("DU-Mining-Units-Monitoring version 1.4.0")
 system.print("----------------------------------------")
 
 fontSize = 25 --export: font size for each line on the screen
@@ -97,6 +97,19 @@ function renderResistanceBar(title, index, status, time, prod_rate, calibration,
     if status == "STALLED" then colorLayer = storageYellow end
     if status == "STOPPED" then colorLayer = storageRed end
 
+    local calibrationRequiredTime = time + ((calibration-optimal)/.625)*3600
+    if 259200 - cal_time > 0 then calibrationRequiredTime = calibrationRequiredTime + 259200 - cal_time end
+
+    local colorRequiredCalibrationLayer = storageBar
+    if calibrationRequiredTime < 86400 then colorRequiredCalibrationLayer = storageYellow end
+    if calibrationRequiredTime < 43200 then colorRequiredCalibrationLayer = storageRed end
+
+    if calibrationRequiredTime < 0 then
+        calibrationRequiredTime = "REQUIRED"
+    else
+        calibrationRequiredTime = SecondsToClockString(calibrationRequiredTime)
+    end
+
     pcal = calibration
     if pcal > optimal then pcal = optimal end
     if optimal > 0 then
@@ -122,13 +135,13 @@ function renderResistanceBar(title, index, status, time, prod_rate, calibration,
         addText(storageBar, small, "ORE", x, y-5)
         addText(storageBar, small, "STATUS", x+w-60, y-5)
         setNextTextAlign(storageBar, AlignH_Center, AlignV_Bottom)
-        addText(storageBar, small, "TIME", x+(w*0.3), y-3)
+        addText(storageBar, small, "TIME & RATE", x+(w*0.3), y-3)
         setNextTextAlign(storageBar, AlignH_Center, AlignV_Bottom)
-        addText(storageBar, small, "RATE", x+(w*0.45), y-3)
+        addText(storageBar, small, "Calibration", x+(w*0.45), y-3)
         setNextTextAlign(storageBar, AlignH_Center, AlignV_Bottom)
-        addText(storageBar, small, "CALIBRATION", x+(w*0.6), y-3)
+        addText(storageBar, small, "CALIBRATION REQUIRED IN", x+(w*0.65), y-3)
         setNextTextAlign(storageBar, AlignH_Center, AlignV_Bottom)
-        addText(storageBar, small, "EFFICIENCY", x+(w*0.75), y-3)
+        addText(storageBar, small, "EFFICIENCY", x+(w*0.80), y-3)
     end
 
     addText(storageBar, itemName, title, x+15+font_size, y+h-font_size/2)
@@ -139,16 +152,18 @@ function renderResistanceBar(title, index, status, time, prod_rate, calibration,
         addImage(imagesLayer, images[index], x+10, y+5, font_size, font_size)
     end
     setNextTextAlign(storageBar, AlignH_Center, AlignV_Middle)
-    addText(storageBar, itemNameSmall, SecondsToClockString(time), x+(w*0.3), y+(h/2)-3)
+    addText(storageBar, itemNameXs, SecondsToClockString(time), x+(w*0.3), y+(h/4)-3)
     setNextTextAlign(storageBar, AlignH_Center, AlignV_Middle)
-    addText(storageBar, itemNameSmall, format_number(prod_rate) .. 'L', x+(w*0.45), y+(h/2)-3)
+    addText(storageBar, itemNameXs, format_number(prod_rate) .. 'L', x+(w*0.3), y+(h/4)+(h/4)+(h/4)-3)
     setNextTextAlign(CalibrationTimeColorLayer, AlignH_Center, AlignV_Middle)
-    addText(CalibrationTimeColorLayer, itemNameXs, SecondsToClockString(cal_time), x+(w*0.6), y+(h/4)-3)
+    addText(CalibrationTimeColorLayer, itemNameXs, SecondsToClockString(cal_time), x+(w*0.45), y+(h/4)-3)
     setNextFillColor(gaugeColorLayer, r, g, b, 1)
     setNextTextAlign(gaugeColorLayer, AlignH_Center, AlignV_Middle)
-    addText(gaugeColorLayer, itemNameXs, format_number(calibration) .. '% / ' ..format_number(optimal) .. '%', x+(w*0.6), y+(h/4)+(h/4)+(h/4)-3)
+    addText(gaugeColorLayer, itemNameXs, format_number(round(calibration)) .. '% / ' ..format_number(round(optimal)) .. '%', x+(w*0.45), y+(h/4)+(h/4)+(h/4)-3)
+    setNextTextAlign(colorRequiredCalibrationLayer, AlignH_Center, AlignV_Middle)
+    addText(colorRequiredCalibrationLayer, itemNameSmall, calibrationRequiredTime, x+(w*0.65), y+(h/2)-3)
     setNextTextAlign(storageBar, AlignH_Center, AlignV_Middle)
-    addText(storageBar, itemNameSmall, format_number(efficiency) .. '%', x+(w*0.75), y+(h/2)-3)
+    addText(storageBar, itemNameSmall, format_number(round(efficiency)) .. '%', x+(w*0.80), y+(h/2)-3)
 
     setNextTextAlign(colorLayer, AlignH_Right, AlignV_Middle)
     addText(colorLayer, itemName, status, x+w-10, y+(h/2)-3)
@@ -223,9 +238,9 @@ MyCoroutines = {
                 round(mu.getRemainingTime()),
                 ores[ore_id],
                 round(mu.getProductionRate()*100)/100,
-                round(mu.getCalibrationRate()*100),
-                round(mu.getOptimalRate()*100),
-                round(mu.getEfficiency()*100),
+                round(mu.getCalibrationRate()*10000)/100,
+                round(mu.getOptimalRate()*10000)/100,
+                round(mu.getEfficiency()*10000)/100,
                 round(mu.getLastExtractionTime()),
             }
             table.insert(screen_data, mu_data)

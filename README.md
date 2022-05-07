@@ -29,6 +29,16 @@ Copy the content of the file config.json then right clik on the board, chose adv
 
 Mining units will be displayed in the order they are linked to the board
 
+#### Colors
+
+- **Time from last calibration:** by default, it's red if higher than 3 days to show that the calibration percent start decreasing and yellow after 24h to show you calibration is possible, you can customize these values from LUA parameters
+
+
+- **Gauge and calibration percent:** it's green till the calibration is equal or higher than the optimal calibration. When it's lower from optimal, the color is a gradient from yellow to red, more it will be far from the optimal, more it will trend to red
+
+
+- **Time before calibration is required:** display in yellow when lower than 24h and in red when lower than 12h 
+
 ### Options
 
 By rightclicking on the board, advanced, edit lua parameters, you can customize these options:

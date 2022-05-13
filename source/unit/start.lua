@@ -1,5 +1,5 @@
 system.print("----------------------------------------")
-system.print("DU-Mining-Units-Monitoring version 1.4.1")
+system.print("DU-Mining-Units-Monitoring version 1.5.0")
 system.print("----------------------------------------")
 
 fontSize = 25 --export: font size for each line on the screen
@@ -8,10 +8,14 @@ calibrationSecondsYellowLevel = 86400 --export: The time in seconds from last ca
 
 local renderScript = [[
 local json = require('dkjson')
-local data = json.decode(getInput()) or {}
+local fromScript = json.decode(getInput()) or {}
+pool = fromScript[1] or {}
+data = fromScript[2] or {}
 images = {}
-for index,mu in ipairs(data) do
-    images[index] = loadImage("resources_generated/env/" .. mu[3][2])
+for k,p in pairs(pool) do
+    if images[k] == nil or not isImageLoaded(images[k]) then
+        images[k] = loadImage("resources_generated/env/" .. p[4])
+    end
 end
 
 local rx,ry = getResolution()
@@ -19,8 +23,7 @@ local rx,ry = getResolution()
 local back=createLayer()
 local front=createLayer()
 
-font_size = ]] .. fontSize .. [[
-
+font_size = 25
 
 local mini=loadFont('Play',12)
 local small=loadFont('Play',14)
@@ -89,7 +92,7 @@ local imagesLayer = createLayer()
 
 local gaugeColorLayer = createLayer()
 
-function renderResistanceBar(title, index, status, time, prod_rate, calibration, optimal, efficiency, cal_time, x, y, w, h, withTitle)
+function renderResistanceBar(ore_id, status, time, prod_rate, calibration, optimal, efficiency, cal_time, x, y, w, h, withTitle)
     local quantity_x_pos = font_size * 6.7
     local percent_x_pos = font_size * 2
 
@@ -126,8 +129,8 @@ function renderResistanceBar(title, index, status, time, prod_rate, calibration,
     end
 
     local CalibrationTimeColorLayer = storageGreen
-    if cal_time > ]] .. calibrationSecondsYellowLevel .. [[ then CalibrationTimeColorLayer = storageYellow end
-    if cal_time > ]] .. calibrationSecondsRedLevel .. [[ then CalibrationTimeColorLayer = storageRed end
+    if cal_time > 86400 then CalibrationTimeColorLayer = storageYellow end
+    if cal_time > 259200 then CalibrationTimeColorLayer = storageRed end
 
     addBox(storageBar,x,y,w,h)
 
@@ -145,12 +148,12 @@ function renderResistanceBar(title, index, status, time, prod_rate, calibration,
         addText(storageBar, small, "EFFICIENCY", x+(w*0.80), y-3)
     end
 
-    addText(storageBar, itemName, title, x+15+font_size, y+h-font_size/2)
+    addText(storageBar, itemName, pool[ore_id][3], x+15+font_size, y+h-font_size/2)
     setNextFillColor(gaugeColorLayer, r, g, b, 1)
     addBox(gaugeColorLayer,x,y+h-3,w*calibration/100,3)
 
-    if isImageLoaded(images[index]) then
-        addImage(imagesLayer, images[index], x+10, y+5, font_size, font_size)
+    if isImageLoaded(images[ore_id]) then
+        addImage(imagesLayer, images[ore_id], x+10, y+5, font_size, font_size)
     end
     setNextTextAlign(storageBar, AlignH_Center, AlignV_Middle)
     addText(storageBar, itemNameXs, SecondsToClockString(time), x+(w*0.3), y+(h/4)-3)
@@ -170,15 +173,36 @@ function renderResistanceBar(title, index, status, time, prod_rate, calibration,
     addText(colorLayer, itemName, status, x+w-10, y+(h/2)-3)
 end
 
+function renderPool(pool)
+    local h_factor = 12
+    local h = 35
+    addLine( back,0,ry-h+h_factor,rx,ry-h+h_factor)
+    addBox(front,0,ry-h-h_factor,rx,h)
+    local nb_col = 1
+    for k,v in pairs(pool) do nb_col = nb_col + 1 end
+    local n = 1
+    for k,v in pairs(pool) do
+        setNextTextAlign(storageBar, AlignH_Center, AlignV_Bottom)
+        addText(storageBar, small, v[3], (rx/nb_col)*n, ry-h-h_factor)
+        if isImageLoaded(images[k]) then
+            addImage(storageBar, images[k], (rx/nb_col)*n-h-h, ry-(h/2)-h_factor-(h/2)+2, h-4, h-4)
+        end
+        setNextTextAlign(storageBar, AlignH_Center, AlignV_Middle)
+        addText(storageBar, itemNameSmall, format_number(round(v[1])) .. " / " .. format_number(round(v[2])), (rx/nb_col)*n, ry-(h/2)-h_factor)
+        n = n + 1
+    end
+end
+
 renderHeader('MINING UNITS MONITORING')
 
 start_h = 75
 
 local h = font_size + font_size / 2
 for i,mu in ipairs(data) do
-    renderResistanceBar(mu[3][1], i, mu[1], mu[2], mu[4], mu[5], mu[6], mu[7], mu[8], 44, start_h, rx-88, h, i==1)
+    renderResistanceBar(tostring(mu[3]), mu[1], mu[2], mu[4], mu[5], mu[6], mu[7], mu[8], 44, start_h, rx-88, h, i==1)
     start_h = start_h+h+15
 end
+renderPool(pool)
 requestAnimationFrame(10)
 ]]
 
@@ -225,19 +249,23 @@ coroutinesTable  = {}
 MyCoroutines = {
     function()
         screen_data = {}
-        for index, mu in pairs(mining_units) do
-            local ore_id = mu.getActiveOre()
-            if ores[ore_id] == nil then
-                local item_data = system.getItem(ore_id)
-                ores[ore_id] = {
-                    item_data.locDisplayName,
-                    item_data.iconPath:gsub("resources_generated/env/","")
-                }
+        pool = {}
+        for index, mu in ipairs(mining_units) do
+            local mup = mu.getOrePools()
+            for _,p in ipairs(mup) do
+                if ores[p.oreId] == nil then
+                    local item_data = system.getItem(p.oreId)
+                    ores[p.oreId] = {
+                        item_data.locDisplayName,
+                        item_data.iconPath:gsub("resources_generated/env/","")
+                    }
+                end
+                pool[p.oreId] = {p.available, p.maximum, ores[p.oreId][1], ores[p.oreId][2]}
             end
             local mu_data = {
                 mu.getStatus(),
                 round(mu.getRemainingTime()),
-                ores[ore_id],
+                mu.getActiveOre(),
                 round(mu.getProductionRate()*100)/100,
                 round(mu.getCalibrationRate()*10000)/100,
                 round(mu.getOptimalRate()*10000)/100,
@@ -248,7 +276,11 @@ MyCoroutines = {
             coroutine.yield(coroutinesTable[1])
         end
         for index, screen in pairs(screens) do
-            screen.setScriptInput(json.encode(screen_data))
+            local toSend = {
+                pool,
+                screen_data
+            }
+            screen.setScriptInput(json.encode(toSend))
         end
     end
 }

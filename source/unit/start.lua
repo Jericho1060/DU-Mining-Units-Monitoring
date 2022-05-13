@@ -1,5 +1,5 @@
 system.print("----------------------------------------")
-system.print("DU-Mining-Units-Monitoring version 1.4.0")
+system.print("DU-Mining-Units-Monitoring version 1.4.1")
 system.print("----------------------------------------")
 
 fontSize = 25 --export: font size for each line on the screen
@@ -99,6 +99,7 @@ function renderResistanceBar(title, index, status, time, prod_rate, calibration,
 
     local calibrationRequiredTime = time + ((calibration-optimal)/.625)*3600
     if 259200 - cal_time > 0 then calibrationRequiredTime = calibrationRequiredTime + 259200 - cal_time end
+    if calibration < optimal then calibrationRequiredTime = 86400 - cal_time end
 
     local colorRequiredCalibrationLayer = storageBar
     if calibrationRequiredTime < 86400 then colorRequiredCalibrationLayer = storageYellow end

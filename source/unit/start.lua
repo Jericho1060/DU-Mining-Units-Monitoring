@@ -1,5 +1,5 @@
 system.print("----------------------------------------")
-system.print("DU-Mining-Units-Monitoring version 1.5.0")
+system.print("DU-Mining-Units-Monitoring version 1.5.1")
 system.print("----------------------------------------")
 
 fontSize = 25 --export: font size for each line on the screen
@@ -100,7 +100,7 @@ function renderResistanceBar(ore_id, status, time, prod_rate, calibration, optim
     if status == "STALLED" then colorLayer = storageYellow end
     if status == "STOPPED" then colorLayer = storageRed end
 
-    local calibrationRequiredTime = time + ((calibration-optimal)/.625)*3600
+    local calibrationRequiredTime = ((calibration-optimal)/.625)*3600
     if 259200 - cal_time > 0 then calibrationRequiredTime = calibrationRequiredTime + 259200 - cal_time end
     if calibration < optimal then calibrationRequiredTime = 86400 - cal_time end
 

@@ -1,5 +1,5 @@
 system.print("----------------------------------------")
-system.print("DU-Mining-Units-Monitoring version 1.5.1")
+system.print("DU-Mining-Units-Monitoring version 1.5.2")
 system.print("----------------------------------------")
 
 fontSize = 25 --export: font size for each line on the screen
@@ -158,16 +158,20 @@ function renderResistanceBar(ore_id, status, time, prod_rate, calibration, optim
     setNextTextAlign(storageBar, AlignH_Center, AlignV_Middle)
     addText(storageBar, itemNameXs, SecondsToClockString(time), x+(w*0.3), y+(h/4)-3)
     setNextTextAlign(storageBar, AlignH_Center, AlignV_Middle)
+    if (prod_rate-round(prod_rate)) == 0 then prod_rate = round(prod_rate) end
     addText(storageBar, itemNameXs, format_number(prod_rate) .. 'L', x+(w*0.3), y+(h/4)+(h/4)+(h/4)-3)
     setNextTextAlign(CalibrationTimeColorLayer, AlignH_Center, AlignV_Middle)
     addText(CalibrationTimeColorLayer, itemNameXs, SecondsToClockString(cal_time), x+(w*0.45), y+(h/4)-3)
     setNextFillColor(gaugeColorLayer, r, g, b, 1)
     setNextTextAlign(gaugeColorLayer, AlignH_Center, AlignV_Middle)
-    addText(gaugeColorLayer, itemNameXs, format_number(round(calibration)) .. '% / ' ..format_number(round(optimal)) .. '%', x+(w*0.45), y+(h/4)+(h/4)+(h/4)-3)
+    if (calibration-round(calibration)) == 0 then calibration = round(calibration) end
+    if (optimal-round(optimal)) == 0 then optimal = round(optimal) end
+    addText(gaugeColorLayer, itemNameXs, format_number(calibration) .. '% / ' ..format_number(optimal) .. '%', x+(w*0.45), y+(h/4)+(h/4)+(h/4)-3)
     setNextTextAlign(colorRequiredCalibrationLayer, AlignH_Center, AlignV_Middle)
     addText(colorRequiredCalibrationLayer, itemNameSmall, calibrationRequiredTime, x+(w*0.65), y+(h/2)-3)
     setNextTextAlign(storageBar, AlignH_Center, AlignV_Middle)
-    addText(storageBar, itemNameSmall, format_number(round(efficiency)) .. '%', x+(w*0.80), y+(h/2)-3)
+    if (efficiency-round(efficiency)) == 0 then efficiency = round(efficiency) end
+    addText(storageBar, itemNameSmall, format_number(efficiency) .. '%', x+(w*0.80), y+(h/2)-3)
 
     setNextTextAlign(colorLayer, AlignH_Right, AlignV_Middle)
     addText(colorLayer, itemName, status, x+w-10, y+(h/2)-3)

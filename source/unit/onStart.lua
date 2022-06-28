@@ -1,5 +1,5 @@
 system.print("----------------------------------------")
-system.print("DU-Mining-Units-Monitoring version 1.5.3")
+system.print("DU-Mining-Units-Monitoring version 1.5.4")
 system.print("----------------------------------------")
 
 fontSize = 25 --export: font size for each line on the screen
@@ -223,7 +223,6 @@ for slot_name, slot in pairs(unit) do
         and type(slot.export) == "table"
         and slot.getClass
     then
-    system.print(slot.getClass())
         slot.slotname = slot_name
         if slot.getClass():lower() == 'screenunit' then
             table.insert(screens,slot)

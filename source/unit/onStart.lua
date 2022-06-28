@@ -97,8 +97,14 @@ function renderResistanceBar(ore_id, status, time, prod_rate, calibration, optim
     local percent_x_pos = font_size * 2
 
     local colorLayer = storageGreen
-    if status == "STALLED" then colorLayer = storageYellow end
-    if status == "STOPPED" then colorLayer = storageRed end
+    local status_text = "RUNNING"
+    if (status == 1) or (status == 3) or (status == 4) then
+        colorLayer = storageRed
+        if status == 3 then status_text = 'OUTPUT FULL'
+        elseif status == 1 then status_text = 'STOPPED'
+        elseif status == 4 then status_text = 'NO CONTAINER'
+        end
+    end
 
     local calibrationRequiredTime = ((calibration-optimal)/.625)*3600
     if 259200 - cal_time > 0 then calibrationRequiredTime = calibrationRequiredTime + 259200 - cal_time end
@@ -174,7 +180,7 @@ function renderResistanceBar(ore_id, status, time, prod_rate, calibration, optim
     addText(storageBar, itemNameSmall, format_number(efficiency) .. '%', x+(w*0.80), y+(h/2)-3)
 
     setNextTextAlign(colorLayer, AlignH_Right, AlignV_Middle)
-    addText(colorLayer, itemName, status, x+w-10, y+(h/2)-3)
+    addText(colorLayer, itemName, status_text, x+w-10, y+(h/2)-3)
 end
 
 function renderPool(pool)
@@ -215,13 +221,14 @@ mining_units = {}
 for slot_name, slot in pairs(unit) do
     if type(slot) == "table"
         and type(slot.export) == "table"
-        and slot.getElementClass
+        and slot.getClass
     then
+    system.print(slot.getClass())
         slot.slotname = slot_name
-        if slot.getElementClass():lower() == 'screenunit' then
+        if slot.getClass():lower() == 'screenunit' then
             table.insert(screens,slot)
             slot.setRenderScript(renderScript)
-        elseif slot.getElementClass():lower() == 'miningunit' then
+        elseif slot.getClass():lower() == 'miningunit' then
             table.insert(mining_units,slot)
         end
     end
@@ -257,17 +264,17 @@ MyCoroutines = {
         for index, mu in ipairs(mining_units) do
             local mup = mu.getOrePools()
             for _,p in ipairs(mup) do
-                if ores[p.oreId] == nil then
-                    local item_data = system.getItem(p.oreId)
-                    ores[p.oreId] = {
+                if ores[p.id] == nil then
+                    local item_data = system.getItem(p.id)
+                    ores[p.id] = {
                         item_data.locDisplayName,
                         item_data.iconPath:gsub("resources_generated/env/","")
                     }
                 end
-                pool[p.oreId] = {p.available, p.maximum, ores[p.oreId][1], ores[p.oreId][2]}
+                pool[p.id] = {p.available, p.maximum, ores[p.id][1], ores[p.id][2]}
             end
             local mu_data = {
-                mu.getStatus(),
+                mu.getState(),
                 round(mu.getRemainingTime()),
                 mu.getActiveOre(),
                 round(mu.getProductionRate()*100)/100,

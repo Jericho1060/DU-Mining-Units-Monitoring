@@ -1,5 +1,5 @@
 system.print("----------------------------------------")
-system.print("DU-Mining-Units-Monitoring version 1.5.2")
+system.print("DU-Mining-Units-Monitoring version 1.5.3")
 system.print("----------------------------------------")
 
 fontSize = 25 --export: font size for each line on the screen

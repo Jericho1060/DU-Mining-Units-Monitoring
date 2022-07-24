@@ -1,5 +1,7 @@
+local version = '1.5.5'
+
 system.print("----------------------------------------")
-system.print("DU-Mining-Units-Monitoring version 1.5.4")
+system.print("DU-Mining-Units-Monitoring version " .. version)
 system.print("----------------------------------------")
 
 fontSize = 25 --export: font size for each line on the screen
@@ -153,12 +155,13 @@ function renderResistanceBar(ore_id, status, time, prod_rate, calibration, optim
         setNextTextAlign(storageBar, AlignH_Center, AlignV_Bottom)
         addText(storageBar, small, "EFFICIENCY", x+(w*0.80), y-3)
     end
-
-    addText(storageBar, itemName, pool[ore_id][3], x+15+font_size, y+h-font_size/2)
+    local ore_name = 'No Ore Selected'
+    if tonumber(ore_id) > 0 then ore_name = pool[ore_id][3] end
+    addText(storageBar, itemName, ore_name, x+15+font_size, y+h-font_size/2)
     setNextFillColor(gaugeColorLayer, r, g, b, 1)
     addBox(gaugeColorLayer,x,y+h-3,w*calibration/100,3)
 
-    if isImageLoaded(images[ore_id]) then
+    if tonumber(ore_id) > 0 and isImageLoaded(images[ore_id]) then
         addImage(imagesLayer, images[ore_id], x+10, y+5, font_size, font_size)
     end
     setNextTextAlign(storageBar, AlignH_Center, AlignV_Middle)
@@ -198,12 +201,12 @@ function renderPool(pool)
             addImage(storageBar, images[k], (rx/nb_col)*n-h-h, ry-(h/2)-h_factor-(h/2)+2, h-4, h-4)
         end
         setNextTextAlign(storageBar, AlignH_Center, AlignV_Middle)
-        addText(storageBar, itemNameSmall, format_number(round(v[1])) .. " / " .. format_number(round(v[2])), (rx/nb_col)*n, ry-(h/2)-h_factor)
+        addText(storageBar, itemNameSmall, format_number(round(v[1])) .. " / " .. format_number(round(v[2])), (rx/nb_col)*n+5, ry-(h/2)-h_factor)
         n = n + 1
     end
 end
 
-renderHeader('MINING UNITS MONITORING')
+renderHeader('MINING UNITS MONITORING v]] .. version .. [[')
 
 start_h = 75
 
@@ -220,8 +223,8 @@ screens = {}
 mining_units = {}
 for slot_name, slot in pairs(unit) do
     if type(slot) == "table"
-        and type(slot.export) == "table"
-        and slot.getClass
+            and type(slot.export) == "table"
+            and slot.getClass
     then
         slot.slotname = slot_name
         if slot.getClass():lower() == 'screenunit' then

@@ -1,4 +1,4 @@
-local version = '1.5.5'
+local version = '1.5.6'
 
 system.print("----------------------------------------")
 system.print("DU-Mining-Units-Monitoring version " .. version)
@@ -25,7 +25,8 @@ local rx,ry = getResolution()
 local back=createLayer()
 local front=createLayer()
 
-font_size = 25
+font_size = ]] .. fontSize .. [[
+
 
 local mini=loadFont('Play',12)
 local small=loadFont('Play',14)

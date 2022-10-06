@@ -1,4 +1,4 @@
-local version = '1.5.6'
+local version = '1.6.0'
 
 system.print("----------------------------------------")
 system.print("DU-Mining-Units-Monitoring version " .. version)
@@ -157,12 +157,12 @@ function renderResistanceBar(ore_id, status, time, prod_rate, calibration, optim
         addText(storageBar, small, "EFFICIENCY", x+(w*0.80), y-3)
     end
     local ore_name = 'No Ore Selected'
-    if tonumber(ore_id) > 0 then ore_name = pool[ore_id][3] end
+    if pool and pool[ore_id] and tonumber(ore_id) > 0 then ore_name = pool[ore_id][3] end
     addText(storageBar, itemName, ore_name, x+15+font_size, y+h-font_size/2)
     setNextFillColor(gaugeColorLayer, r, g, b, 1)
     addBox(gaugeColorLayer,x,y+h-3,w*calibration/100,3)
 
-    if tonumber(ore_id) > 0 and isImageLoaded(images[ore_id]) then
+    if tonumber(ore_id) > 0 and images[ore_id] and isImageLoaded(images[ore_id]) then
         addImage(imagesLayer, images[ore_id], x+10, y+5, font_size, font_size)
     end
     setNextTextAlign(storageBar, AlignH_Center, AlignV_Middle)
@@ -216,7 +216,9 @@ for i,mu in ipairs(data) do
     renderResistanceBar(tostring(mu[3]), mu[1], mu[2], mu[4], mu[5], mu[6], mu[7], mu[8], 44, start_h, rx-88, h, i==1)
     start_h = start_h+h+15
 end
-renderPool(pool)
+if fromScript[1] then
+    renderPool(pool)
+end
 requestAnimationFrame(10)
 ]]
 
@@ -224,8 +226,8 @@ screens = {}
 mining_units = {}
 for slot_name, slot in pairs(unit) do
     if type(slot) == "table"
-            and type(slot.export) == "table"
-            and slot.getClass
+        and type(slot.export) == "table"
+        and slot.getClass
     then
         slot.slotname = slot_name
         if slot.getClass():lower() == 'screenunit' then

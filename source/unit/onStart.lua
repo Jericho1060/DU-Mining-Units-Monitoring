@@ -1,4 +1,4 @@
-local version = '1.6.0'
+local version = '1.6.1'
 
 system.print("----------------------------------------")
 system.print("DU-Mining-Units-Monitoring version " .. version)
@@ -9,7 +9,7 @@ calibrationSecondsRedLevel = 259200 --export: The time in seconds from last cali
 calibrationSecondsYellowLevel = 86400 --export: The time in seconds from last calibration above the time will be displayed in yellow. Default to 86400 (1 day / 24h)
 
 local renderScript = [[
-local json = require('dkjson')
+local json = require('json')
 local fromScript = json.decode(getInput()) or {}
 pool = fromScript[1] or {}
 data = fromScript[2] or {}
@@ -119,7 +119,7 @@ function renderResistanceBar(ore_id, status, time, prod_rate, calibration, optim
 
     if calibrationRequiredTime < 0 then
         calibrationRequiredTime = "REQUIRED"
-    else
+    else 
         calibrationRequiredTime = SecondsToClockString(calibrationRequiredTime)
     end
 
@@ -157,13 +157,13 @@ function renderResistanceBar(ore_id, status, time, prod_rate, calibration, optim
         addText(storageBar, small, "EFFICIENCY", x+(w*0.80), y-3)
     end
     local ore_name = 'No Ore Selected'
-    if pool and pool[ore_id] and tonumber(ore_id) > 0 then ore_name = pool[ore_id][3] end
+    if pool and pool["i"..ore_id] and tonumber(ore_id) > 0 then ore_name = pool["i"..ore_id][3] end
     addText(storageBar, itemName, ore_name, x+15+font_size, y+h-font_size/2)
     setNextFillColor(gaugeColorLayer, r, g, b, 1)
     addBox(gaugeColorLayer,x,y+h-3,w*calibration/100,3)
 
-    if tonumber(ore_id) > 0 and images[ore_id] and isImageLoaded(images[ore_id]) then
-        addImage(imagesLayer, images[ore_id], x+10, y+5, font_size, font_size)
+    if tonumber(ore_id) > 0 and images["i"..ore_id] and isImageLoaded(images["i"..ore_id]) then
+        addImage(imagesLayer, images["i"..ore_id], x+10, y+5, font_size, font_size)
     end
     setNextTextAlign(storageBar, AlignH_Center, AlignV_Middle)
     addText(storageBar, itemNameXs, SecondsToClockString(time), x+(w*0.3), y+(h/4)-3)
@@ -271,12 +271,12 @@ MyCoroutines = {
             for _,p in ipairs(mup) do
                 if ores[p.id] == nil then
                     local item_data = system.getItem(p.id)
-                    ores[p.id] = {
+                    ores["i" .. p.id] = {
                         item_data.locDisplayName,
                         item_data.iconPath:gsub("resources_generated/env/","")
                     }
                 end
-                pool[p.id] = {p.available, p.maximum, ores[p.id][1], ores[p.id][2]}
+                pool["i" .. p.id] = {p.available, p.maximum, ores["i" .. p.id][1], ores["i" .. p.id][2]}
             end
             local mu_data = {
                 mu.getState(),
@@ -322,3 +322,4 @@ runCoroutines = function()
 end
 
 MainCoroutine = coroutine.create(runCoroutines)
+

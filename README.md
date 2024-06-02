@@ -7,10 +7,6 @@
 
 [![img](https://du-lua.dev/img/open_in_editor_button.png)](https://du-lua.dev/#/editor/github/Jericho1060/DU-Mining-Units-Monitoring)
 
-# Guilded Server (better than Discord)
-
-You can join me on Guilded for help or suggestions or requests by following that link : https://guilded.jericho.dev
-
 # Discord Server
 
 You can join me on Discord for help or suggestions or requests by following that link : https://discord.gg/qkdjyqDZQZ

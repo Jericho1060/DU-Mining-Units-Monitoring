@@ -50,3 +50,5 @@ By rightclicking on the board, advanced, edit lua parameters, you can customize 
 - `fontSize`: the size of the text for each line on the screen
 - `calibrationSecondsRedLevel`: The time in seconds from last calibration above the time will be displayed in red. Default to 259200 (3 days / 72h)
 - `calibrationSecondsYellowLevel`: The time in seconds from last calibration above the time will be displayed in yellow. Default to 86400 (1 day / 24h)
+- `calibrationGracePeriodHours`: MyDU only: The number of hours before the calibration start to lower (server setting)
+- `calibrationCooldownHour`: MyDU only: the number of hours between two calibration are possible (server setting)

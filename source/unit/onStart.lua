@@ -1,12 +1,14 @@
-local version = '1.6.1'
+local version = '1.7.0'
 
 system.print("----------------------------------------")
 system.print("DU-Mining-Units-Monitoring version " .. version)
 system.print("----------------------------------------")
 
 fontSize = 25 --export: font size for each line on the screen
-calibrationSecondsRedLevel = 259200 --export: The time in seconds from last calibration above the time will be displayed in red. Default to 259200 (3 days / 72h)
+calibrationSecondsRedLevel = 604800 --export: The time in seconds from last calibration above the time will be displayed in red. Default to 259200 (3 days / 72h)
 calibrationSecondsYellowLevel = 86400 --export: The time in seconds from last calibration above the time will be displayed in yellow. Default to 86400 (1 day / 24h)
+calibrationGracePeriodHours = 72 --export: MyDU only: The number of hours before the calibration start to lower (server setting)
+calibrationCooldownHour = 24 --export: MyDU only: the number of hours between two calibration are possible (server setting)
 
 local renderScript = [[
 local json = require('json')
@@ -110,8 +112,8 @@ function renderResistanceBar(ore_id, status, time, prod_rate, calibration, optim
     end
 
     local calibrationRequiredTime = ((calibration-optimal)/.625)*3600
-    if 259200 - cal_time > 0 then calibrationRequiredTime = calibrationRequiredTime + 259200 - cal_time end
-    if calibration < optimal then calibrationRequiredTime = 86400 - cal_time end
+    if (]] .. calibrationGracePeriodHours .. [[ * 3600) - cal_time > 0 then calibrationRequiredTime = calibrationRequiredTime + (]] .. calibrationGracePeriodHours .. [[ * 3600) - cal_time end
+    if calibration < optimal then calibrationRequiredTime = (]] .. calibrationCooldownHour .. [[ * 3600) - cal_time end
 
     local colorRequiredCalibrationLayer = storageBar
     if calibrationRequiredTime < 86400 then colorRequiredCalibrationLayer = storageYellow end
@@ -322,4 +324,3 @@ runCoroutines = function()
 end
 
 MainCoroutine = coroutine.create(runCoroutines)
-
